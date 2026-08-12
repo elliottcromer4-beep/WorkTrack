@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.venv/
+venv/
+env/
+
+# Tooling
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Build output
+build/
+dist/
+*.manifest
+
+# Application data (never belongs in the repository).
+# The directory patterns are anchored to the repository root — unanchored,
+# "exports/" would also match the src/exports package.
+*.db
+*.db-wal
+*.db-shm
+*.lock
+crash.log
+/backups/
+/exports/
+
+# Editors and OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db

@@ -1,0 +1,6 @@
+-r requirements.txt
+
+pytest>=8.0
+PyMuPDF>=1.24      # rasterises the generated PDF so the layout tests can inspect it
+ruff>=0.5
+pyinstaller>=6.0
