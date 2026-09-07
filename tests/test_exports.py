@@ -86,8 +86,8 @@ def _overlapping_pairs(page, tolerance=0.45):
             overlap = box_a & box_b
             if overlap.is_empty:
                 continue
-            area = overlap.get_area()
-            smaller = min(box_a.get_area(), box_b.get_area())
+            area = overlap.width * overlap.height
+            smaller = min(box_a.width * box_a.height, box_b.width * box_b.height)
             if smaller > 0 and area / smaller > tolerance:
                 clashes.append((text_a, text_b))
     return clashes

@@ -5,6 +5,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [1.1.1] — 2026-09-07
 
+- Keep PDF layout checks compatible with the PyMuPDF version available on Python 3.9.
 - Prevent backup filename collisions on Windows with coarse wall-clock resolution.
 
 ## [1.1.0] — 2026-09-07
