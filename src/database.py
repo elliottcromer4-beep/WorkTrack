@@ -6,7 +6,6 @@ thread, so every statement runs under a re-entrant lock.  ``check_same_thread``
 is disabled to permit the sharing; the lock is what actually makes it safe.
 """
 import json
-import shutil
 import sqlite3
 import threading
 from collections.abc import Iterable, Sequence
@@ -180,8 +179,9 @@ class Database:
             return
         try:
             self._conn.commit()
-            shutil.copy2(self.db_path, target)
-        except OSError:
+            with sqlite3.connect(target) as destination:
+                self._conn.backup(destination)
+        except (OSError, sqlite3.Error):
             # A failed safety copy must not stop the app from opening.
             pass
 
@@ -441,7 +441,8 @@ class Database:
                      subtask_id: Optional[int] = None,
                      date_from: Optional[str] = None,
                      date_to: Optional[str] = None,
-                     limit: Optional[int] = None) -> list[Session]:
+                     limit: Optional[int] = None,
+                     search: str = "", offset: int = 0) -> list[Session]:
         sql = """
             SELECT s.*, p.name AS project_name, p.client, st.name AS subtask_name
             FROM sessions s
@@ -462,10 +463,21 @@ class Database:
         clause, values = self._range_clause(date_from, date_to)
         sql += clause
         params += values
-        sql += " ORDER BY s.started_at DESC"
+        if search.strip():
+            sql += (" AND (instr(lower(p.name), lower(?)) > 0"
+                    " OR instr(lower(p.client), lower(?)) > 0"
+                    " OR instr(lower(st.name), lower(?)) > 0"
+                    " OR instr(lower(s.notes), lower(?)) > 0)")
+            params += [search.strip()] * 4
+        sql += " ORDER BY s.started_at DESC, s.id DESC"
         if limit is not None:
             sql += " LIMIT ?"
             params.append(limit)
+        if offset:
+            if limit is None:
+                sql += " LIMIT -1"
+            sql += " OFFSET ?"
+            params.append(offset)
         return [Session(**dict(r)) for r in self._query(sql, params)]
 
     def get_sessions_summary(self, date_from: Optional[str] = None,

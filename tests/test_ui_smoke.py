@@ -203,3 +203,26 @@ def test_session_dialog_parses_the_duration_forms():
 def test_toast_messages_do_not_raise(windows):
     windows.dashboard.notify("Something happened", "ok")
     windows.dashboard.update()
+
+
+def test_history_search_and_paging_controls(windows):
+    dashboard = windows.dashboard
+    dashboard._switch_panel("History")
+    panel = dashboard._panels["History"]
+    panel.PAGE_SIZE = 1
+    session = windows.db.get_sessions()[0]
+    windows.db.restore_session(type(session)(**{**vars(session), "id": session.id + 1}))
+    panel._set_period("All")
+    assert panel._next.cget("state") == "normal"
+    panel._page(1)
+    assert panel._offset == 1
+    assert panel._next.cget("state") == "disabled"
+    panel._search.insert(0, "no match")
+    panel._search_history()
+    assert panel._offset == 0
+    assert panel._total.cget("text") == "—"
+    panel._search.delete(0, "end")
+    panel._search.insert(0, "note")
+    panel._search_history()
+    assert "Page total" in panel._total.cget("text")
+    dashboard.update()

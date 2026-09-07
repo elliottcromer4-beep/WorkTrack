@@ -1,6 +1,6 @@
 """Single source of truth for application identity and version."""
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
 APP_NAME = "WorkTrack"
 APP_TAGLINE = "Professional Time Tracking"

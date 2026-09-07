@@ -174,3 +174,24 @@ def test_fresh_database_makes_no_migration_snapshot(tmp_path):
     database = Database(tmp_path / "fresh.db")
     database.close()
     assert not list(tmp_path.glob("*pre-v*-migration.db"))
+
+
+def test_history_search_matches_all_fields_and_literal_wildcards(db, sample):
+    session = db.get_sessions()[0]
+    db.update_session_notes(session.id, "Reviewed 100% of drawings_with_notes")
+    for query in ("aqueduct", "FULCRUM", "100%", "drawings_with_notes"):
+        assert db.get_sessions(search=query)
+    assert len(db.get_sessions(search="Survey")) == 2
+    assert len(db.get_sessions(search="%")) == 1
+    assert db.get_sessions(search="missing") == []
+    assert db.get_sessions(search="aqueduct", project_ids=[]) == []
+
+
+def test_history_paging_has_no_duplicates_when_timestamps_match(db, sample):
+    for session in db.get_sessions():
+        db.update_session(session.id, "2026-01-01T00:00:00+00:00", None, 60, "")
+    first = db.get_sessions(limit=2)
+    second = db.get_sessions(limit=2, offset=2)
+    assert len(first) == 2 and len(second) == 1
+    assert len({s.id for s in first + second}) == 3
+    assert [s.id for s in first + second] == sorted([s.id for s in first + second], reverse=True)

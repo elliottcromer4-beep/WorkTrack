@@ -1,0 +1,3 @@
+include WorkTrack.spec requirements*.txt *.bat create_icon.py seed_data.py CHANGELOG.md
+recursive-include assets *.ico *.png
+recursive-include tests *.py

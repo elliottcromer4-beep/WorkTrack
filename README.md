@@ -20,7 +20,7 @@ falls back to a sensible corner if that monitor is gone.
 | Panel | What it is for |
 | --- | --- |
 | Projects | Projects, clients and their tasks; start a timer on any task |
-| History | Every recorded session — edit, delete, or add one you forgot |
+| History | Search projects, clients, tasks and notes; browse older entries; edit or add time |
 | Reports | Where the time went, by project and task, for any period |
 | Exports | PDF timesheet, Excel workbook or CSV |
 | Settings | Your name for reports, backups, restore, data folder |
@@ -87,7 +87,7 @@ Everything lives in one SQLite database under your user profile:
 Settings → **Data folder → Open** takes you there. Alongside the database:
 
 - `backups/` — a JSON snapshot on the first launch of each day, plus any you
-  take by hand. The last 30 are kept. JSON rather than a database copy so the
+  take by hand. The last 30 automatic backups are kept; manual backups are retained. JSON rather than a database copy so the
   data stays readable and importable even without this app.
 - `exports/` — the default folder offered when you save a report.
 
@@ -165,3 +165,12 @@ src/
 ## Licence
 
 MIT — see [LICENSE](LICENSE).
+
+### History search
+
+In History, enter a project, client, task name or session note and press Enter
+or Search. The period filter applies to search results. Use Older and Newer to
+browse 200 sessions at a time; the footer shows the total for the visible page.
+
+Backup restore rejects unrelated or incomplete JSON and unsupported schema
+versions. A complete SQLite snapshot is required before restore proceeds.

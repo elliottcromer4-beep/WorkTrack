@@ -36,3 +36,6 @@ crash.log
 *.swp
 .DS_Store
 Thumbs.db
+.venv-build/
+build-release.log
+build-package.log

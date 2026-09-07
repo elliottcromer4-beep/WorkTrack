@@ -3,6 +3,19 @@
 All notable changes to WorkTrack are recorded here.
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] — 2026-09-07
+
+- Search history by project, client, task and session notes.
+- Browse older sessions with paging instead of a fixed 200-entry cutoff;
+  history totals explicitly describe the visible page.
+- Reject unrelated, incomplete and unsupported backup JSON before restore.
+- Use SQLite online backups for restore safety copies and migration snapshots,
+  preserving committed data in the write-ahead log.
+- Abort restore when its safety snapshot fails; clear stale timer state,
+  settings, export history and undo actions after replacement.
+- Preserve manual backups, keep the latest 30 automatic backups, avoid
+  same-second filename collisions, and write JSON backups atomically.
+
 ## [1.0.0] — 2026-08-13
 
 First release considered fit to hand a timesheet to a client from.

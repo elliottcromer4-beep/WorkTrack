@@ -840,6 +840,7 @@ class HistoryPanel(Panel):
     def __init__(self, parent, app: "AppController"):
         super().__init__(parent, app)
         self._period = "Today"
+        self._offset = 0
         self.grid_rowconfigure(1, weight=1)
         self._build()
         self.on_show()
@@ -857,6 +858,13 @@ class HistoryPanel(Panel):
                       font=T.FONT_SMALL, corner_radius=T.RADIUS_SM, **T.BTN_PRIMARY,
                       command=self._add_entry).grid(row=0, column=1)
 
+        self._search = ctk.CTkEntry(head, width=360,
+                                    placeholder_text="Project, client, task or notes")
+        self._search.grid(row=2, column=0, sticky="w", pady=(10, 0))
+        self._search.bind("<Return>", lambda _e: self._search_history())
+        ctk.CTkButton(head, text="Search", width=80,
+                      command=self._search_history).grid(row=2, column=1, sticky="e")
+
         self._list = ctk.CTkScrollableFrame(self, fg_color="transparent")
         self._list.grid(row=1, column=0, sticky="nsew", padx=20, pady=(0, 6))
         self._list.grid_columnconfigure(0, weight=1)
@@ -873,7 +881,25 @@ class HistoryPanel(Panel):
                                    text_color=T.TEXT_BRIGHT, anchor="e")
         self._total.grid(row=0, column=1, padx=16, sticky="e")
 
+        navigation = ctk.CTkFrame(self, fg_color="transparent")
+        navigation.grid(row=3, column=0, sticky="ew", padx=20, pady=(0, 12))
+        self._previous = ctk.CTkButton(navigation, text="Newer", width=90,
+                                       command=lambda: self._page(-1))
+        self._previous.pack(side="left")
+        self._next = ctk.CTkButton(navigation, text="Older", width=90,
+                                   command=lambda: self._page(1))
+        self._next.pack(side="right")
+
+    def _search_history(self):
+        self._offset = 0
+        self._load()
+
+    def _page(self, direction: int):
+        self._offset = max(0, self._offset + direction * self.PAGE_SIZE)
+        self._load()
+
     def _set_period(self, period: str):
+        self._offset = 0
         self._period = period
         set_segmented(self._period_buttons, period)
         self._load()
@@ -887,12 +913,20 @@ class HistoryPanel(Panel):
 
         date_from, date_to = period_bounds(self._period)
         sessions = self.app.db.get_sessions(date_from=date_from, date_to=date_to,
-                                            limit=self.PAGE_SIZE + 1)
+                                            limit=self.PAGE_SIZE + 1,
+                                            offset=self._offset,
+                                            search=self._search.get())
         truncated = len(sessions) > self.PAGE_SIZE
+        if not sessions and self._offset:
+            self._offset = max(0, self._offset - self.PAGE_SIZE)
+            self._load()
+            return
         sessions = sessions[:self.PAGE_SIZE]
+        self._previous.configure(state="normal" if self._offset else "disabled")
+        self._next.configure(state="normal" if truncated else "disabled")
 
         if not sessions:
-            ctk.CTkLabel(self._list, text="No sessions in this period.",
+            ctk.CTkLabel(self._list, text="No sessions match this period and search.",
                          font=T.FONT_BASE, text_color=T.TEXT_MUTED).grid(
                 row=0, column=0, pady=40)
             self._summary.configure(text=period_label(date_from, date_to))
@@ -904,12 +938,10 @@ class HistoryPanel(Panel):
             self._add_row(index, session)
             total += session.duration_seconds
 
-        note = f"{len(sessions)} sessions"
-        if truncated:
-            note += f" (showing the most recent {self.PAGE_SIZE})"
+        note = f"Sessions {self._offset + 1}–{self._offset + len(sessions)}"
         self._summary.configure(text=f"{period_label(date_from, date_to)} · {note}")
         self._total.configure(
-            text=f"{format_hm(total)}   ·   {format_hours_decimal(total)} h")
+            text=f"Page total: {format_hm(total)}   ·   {format_hours_decimal(total)} h")
 
     def _add_row(self, row: int, session: Session):
         frame = ctk.CTkFrame(self._list, fg_color=T.BG_CARD,
@@ -1697,6 +1729,7 @@ class SettingsPanel(Panel):
                         "folder."):
             return
         if self.app.backup.restore_backup(Path(chosen)):
+            self.app._undo_stack.clear()
             self._flash("Restored.")
             board = self.dashboard
             if board:
