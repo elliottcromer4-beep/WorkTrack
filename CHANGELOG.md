@@ -3,6 +3,10 @@
 All notable changes to WorkTrack are recorded here.
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [1.1.1] — 2026-09-07
+
+- Prevent backup filename collisions on Windows with coarse wall-clock resolution.
+
 ## [1.1.0] — 2026-09-07
 
 - Search history by project, client, task and session notes.

@@ -7,6 +7,7 @@ importable if this app is ever gone — the data belongs to whoever recorded it.
 """
 import json
 import sqlite3
+import time
 from pathlib import Path
 from typing import Optional
 
@@ -27,6 +28,7 @@ class BackupManager:
 
     def make_backup(self, label: str = "auto") -> Path:
         stamp = now_local().strftime("%Y%m%d_%H%M%S_%f")
+        stamp += f"_{time.monotonic_ns():020d}"
         path = self.backup_dir / f"worktrack_{label}_{stamp}.json"
         temporary = path.with_suffix(".tmp")
         temporary.write_text(json.dumps(self.db.export_all(), indent=2), encoding="utf-8")
@@ -159,6 +161,7 @@ class BackupManager:
         if not source.exists():
             return None
         stamp = now_local().strftime("%Y%m%d_%H%M%S_%f")
+        stamp += f"_{time.monotonic_ns():020d}"
         target = self.backup_dir / f"worktrack_{label}_{stamp}.db"
         try:
             with self.db._lock, sqlite3.connect(target) as destination:

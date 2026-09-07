@@ -73,3 +73,14 @@ def test_retention_keeps_manual_and_newest_auto(db, tmp_path):
     assert not any(p.exists() for p in automatic[:2])
     assert len(set(automatic)) == 4
     assert not list(backup.backup_dir.glob("*.tmp"))
+
+
+def test_backups_are_unique_when_wall_clock_does_not_advance(db, tmp_path, monkeypatch):
+    from src.timeutil import now_local
+
+    frozen = now_local()
+    monkeypatch.setattr("src.backup.now_local", lambda: frozen)
+    backup = BackupManager(db, tmp_path)
+    paths = [backup.make_backup() for _ in range(4)]
+    assert len(set(paths)) == 4
+    assert all(path.exists() for path in paths)
