@@ -10,6 +10,7 @@ import sqlite3
 import time
 from pathlib import Path
 from typing import Optional
+from uuid import uuid4
 
 from .database import SCHEMA_VERSION, Database
 from .timeutil import iso_utc, now_local, now_utc
@@ -28,7 +29,7 @@ class BackupManager:
 
     def make_backup(self, label: str = "auto") -> Path:
         stamp = now_local().strftime("%Y%m%d_%H%M%S_%f")
-        stamp += f"_{time.monotonic_ns():020d}"
+        stamp += f"_{time.perf_counter_ns():020d}_{uuid4().hex}"
         path = self.backup_dir / f"worktrack_{label}_{stamp}.json"
         temporary = path.with_suffix(".tmp")
         temporary.write_text(json.dumps(self.db.export_all(), indent=2), encoding="utf-8")
@@ -161,7 +162,7 @@ class BackupManager:
         if not source.exists():
             return None
         stamp = now_local().strftime("%Y%m%d_%H%M%S_%f")
-        stamp += f"_{time.monotonic_ns():020d}"
+        stamp += f"_{time.perf_counter_ns():020d}_{uuid4().hex}"
         target = self.backup_dir / f"worktrack_{label}_{stamp}.db"
         try:
             with self.db._lock, sqlite3.connect(target) as destination:

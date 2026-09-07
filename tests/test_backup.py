@@ -80,6 +80,7 @@ def test_backups_are_unique_when_wall_clock_does_not_advance(db, tmp_path, monke
 
     frozen = now_local()
     monkeypatch.setattr("src.backup.now_local", lambda: frozen)
+    monkeypatch.setattr("src.backup.time.perf_counter_ns", lambda: 100)
     backup = BackupManager(db, tmp_path)
     paths = [backup.make_backup() for _ in range(4)]
     assert len(set(paths)) == 4
